@@ -12,7 +12,7 @@
       margin: 0;
       padding: 0;
       width: 100%;
-      height: 100%;
+      height: 100vh;
       
       
       position: relative;
@@ -78,8 +78,9 @@
 <body>
   
   <img src="assets/obsidio-framed-bg.jpg" alt="Obsidio Main Image" class="main-image">
-  <div class="side-banner left"></div>
-  <div class="side-banner right"></div>
+  
+    <div class="side-banner" style="background-image: url('assets/banner-right.png'); width: 200px; height: 100%;"></div>
+  </div>
   <!-- Invisible buttons over background plaques -->
   <a id="playtest-btn" class="plaque-button" href="playtest.html" aria-label="Playtest">Playtest</a>
   <a id="preorder-btn" class="plaque-button" href="preorder.html" aria-label="Preorder">Preorder</a>
