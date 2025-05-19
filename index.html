@@ -29,13 +29,13 @@
     /* Example positions; adjust to fit background plaques */
     #playtest-btn {
       bottom: 158px;
-      left: 480px;
+      left: 47px;
       width: 400px;
       height: 100px;
     }
     #preorder-btn {
       bottom: 158px;
-      right: 500px;
+      right: 495px;
       width: 400px;
       height: 100px;
     }
@@ -59,25 +59,6 @@
       z-index: 2;
     }
   </style>
-  <style>
-    .side-banner {
-      position: fixed;
-      top: 0;
-      width: 200px;
-      height: 100vh;
-      background-repeat: no-repeat;
-      background-size: cover;
-      z-index: 1;
-    }
-    .side-banner.left {
-      left: -20px;
-      background-image: url('assets/banner-left.png');
-    }
-    .side-banner.right {
-      right: -20px;
-      background-image: url('assets/banner-right.png');
-    }
-  </style>
 </head>
 <body>
   
@@ -85,7 +66,7 @@
   <img src="assets/banner-right.png" alt="Right Banner" class="banner-image" style="position: fixed; top: 0; right: 0; height: 100vh; width: auto; z-index: 1;">
   <img src="assets/obsidio-framed-bg.jpg" alt="Obsidio Main Image" class="main-image">
   
-    <div class="side-banner" style="background-image: url('assets/banner-right.png'); width: 200px; height: 100%;"></div>
+    
   </div>
   <!-- Invisible buttons over background plaques -->
   <a id="playtest-btn" class="plaque-button" href="playtest.html" aria-label="Playtest">Playtest</a>
