@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preorder Obsidio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Cinzel', serif;
+      background: #1b1b1b;
+      color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 {
+      color: #e0c97f;
+      margin-bottom: 1rem;
+    }
+    p {
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin-bottom: 2rem;
+    }
+    form {
+      background: #2c2c2c;
+      padding: 2rem;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 400px;
+      width: 100%;
+    }
+    input, button {
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+      width: 100%;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+    }
+    input {
+      background: #f4f4f4;
+      color: #1b1b1b;
+    }
+    button {
+      background: #e0c97f;
+      color: #1b1b1b;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #f7e8ac;
+    }
+    a {
+      color: #e0c97f;
+      margin-top: 2rem;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Preorder Obsidio</h1>
+  <p>Be among the first to own Obsidio. Enter your email to reserve your copy and get notified when preorders go live.</p>
+
+  <form action="https://formspree.io/f/yourformid" method="POST">
+    <input type="email" name="email" placeholder="Your Email" required>
+    <button type="submit">Notify Me</button>
+  </form>
+
+  <a href="index.html">&larr; Back to Home</a>
+</body>
+</html>
