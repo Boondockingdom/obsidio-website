@@ -16,47 +16,72 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       min-height: 100vh;
       text-align: center;
+    }
+    main {
+      max-width: 1200px;
+      width: 100%;
       padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .hero {
+      width: 100%;
+      max-width: 1200px;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
     }
     h1 {
-      font-size: 3rem;
-      margin-bottom: 1rem;
+      font-size: 4rem;
+      margin: 1rem 0;
       color: #e0c97f;
     }
     p {
-      font-size: 1.2rem;
-      max-width: 600px;
-      margin-bottom: 2rem;
+      font-size: 1.4rem;
+      max-width: 800px;
+      margin-bottom: 2.5rem;
+      line-height: 1.6;
+    }
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     a.button {
       background: #e0c97f;
       color: #1b1b1b;
       text-decoration: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 5px;
+      padding: 0.9rem 1.8rem;
+      border-radius: 6px;
       font-weight: bold;
       transition: background 0.3s;
+      font-size: 1.1rem;
     }
     a.button:hover {
       background: #f7e8ac;
     }
     footer {
-      margin-top: 3rem;
+      margin-top: 4rem;
       font-size: 0.9rem;
       color: #888;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <main>
-    <img src="assets/obsidio-social-preview.jpg" alt="Obsidio Preview" style="max-width:100%; height:auto; border-radius:8px; margin-bottom:2rem;">
+    <img src="assets/obsidio-social-preview.jpg" alt="Obsidio Preview" class="hero">
     <h1>OBSIDIO</h1>
     <p>A tactical wargame of flanking, terrain, and siege. Build your army, defend your stronghold, and crush your rival with cunning strategy.</p>
-    <a href="playtest.html" class="button">Join the Playtest</a>
-    <a href="preorder.html" class="button" style="margin-left: 1rem;">Preorder Coming Soon</a>
+    <div class="button-group">
+      <a href="playtest.html" class="button">Join the Playtest</a>
+      <a href="preorder.html" class="button">Preorder Coming Soon</a>
+    </div>
   </main>
   <footer>
     &copy; 2025 Obsidio Games. All rights reserved.
