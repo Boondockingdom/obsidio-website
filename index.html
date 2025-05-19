@@ -58,6 +58,29 @@
       width: auto;
       z-index: 2;
     }
+      @media (max-width: 768px) {
+      #playtest-btn, #preorder-btn {
+        width: 60vw;
+        height: 60px;
+        bottom: 120px;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%);
+      }
+
+      #preorder-btn {
+        bottom: 50px;
+      }
+
+      .main-image {
+        width: 100vw;
+        height: auto;
+      }
+
+      footer {
+        font-size: 0.75rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -65,8 +88,8 @@
   <img src="assets/banner-left.png" alt="Left Banner" class="banner-image" style="position: fixed; top: 0; left: -40px; height: 100vh; width: auto; z-index: 1;">
   <img src="assets/banner-right.png" alt="Right Banner" class="banner-image" style="position: fixed; top: 0; right: -40px; height: 100vh; width: auto; z-index: 1;">
   <img src="assets/obsidio-framed-bg.jpg" alt="Obsidio Main Image" class="main-image"><!-- Invisible buttons over background plaques -->
-  <a id="playtest-btn" class="plaque-button" href="playtest.html" aria-label="Playtest">Playtest</a>
-  <a id="preorder-btn" class="plaque-button" href="preorder.html" aria-label="Preorder">Preorder</a>
+  <a id="playtest-btn" class="plaque-button" href="playtest.html" aria-label="Playtest"></a>
+  <a id="preorder-btn" class="plaque-button" href="preorder.html" aria-label="Preorder"></a>
 
   <footer>&copy; 2025 Obsidio Games. All rights reserved.</footer>
 </body>
