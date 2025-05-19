@@ -9,8 +9,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap" rel="stylesheet">
   <style>
     html, body {
-      background: url('assets/obsidio-landing-bg.jpg') no-repeat center center fixed;
-      background-size: contain;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: url('assets/obsidio-landing-bg.jpg') no-repeat center center fixed, radial-gradient(ellipse at center, #1a1a1a 20%, #000 100%);
+      background-size: 90%;
       position: relative;
       overflow: hidden;
     }
@@ -24,10 +28,10 @@
     }
     /* Example positions; adjust to fit background plaques */
     #playtest-btn {
-      top: 60%; left: 30%; width: 200px; height: 80px;
+      bottom: 18%; right: 8%; width: 200px; height: 80px;
     }
     #preorder-btn {
-      top: 60%; left: 55%; width: 200px; height: 80px;
+      bottom: 10%; right: 8%; width: 200px; height: 80px;
     }
     footer {
       position: absolute;
@@ -39,8 +43,8 @@
 </head>
 <body>
   <!-- Invisible buttons over background plaques -->
-  <a id="playtest-btn" class="plaque-button" href="playtest.html" aria-label="Playtest"></a>
-  <a id="preorder-btn" class="plaque-button" href="preorder.html" aria-label="Preorder"></a>
+  <a id="playtest-btn" class="plaque-button" href="playtest.html" aria-label="Playtest">Playtest</a>
+  <a id="preorder-btn" class="plaque-button" href="preorder.html" aria-label="Preorder">Preorder</a>
 
   <footer>&copy; 2025 Obsidio Games. All rights reserved.</footer>
 </body>
