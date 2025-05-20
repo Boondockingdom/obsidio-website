@@ -75,8 +75,9 @@
   <div>
     <button id="save-setup">Save Setup</button>
     <button id="new-game">New Game</button>
-  </div>
-  <div id="win-screen">
+  <a href="/" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: white; text-decoration: none; font-size: 1.2rem; background: rgba(0,0,0,0.5); padding: 0.5rem 1rem; border-radius: 6px;">Back to Homepage</a>
+
+$1
     <div id="win-message"></div>
     <button onclick="location.reload()">Play Again</button>
   </div>
@@ -163,6 +164,8 @@ function renderBoard() {
 renderBoard();
 
 let currentTurn = 'red';
+let lastMoved = { red: null, blue: null };
+let moveHistory = {};
 let selectedUnit = null;
 let hasRecruited = false;
 
@@ -257,6 +260,22 @@ board.addEventListener('click', (e) => {
         tile.classList.remove('confirm');
         hasRecruited = true;
         updateTurnUI();
+
+function checkDecimationVictory() {
+  const redUnits = Array.from(document.querySelectorAll('.unit')).filter(u => getTeamFromColor(getComputedStyle(u).backgroundColor) === 'red');
+  const blueUnits = Array.from(document.querySelectorAll('.unit')).filter(u => getTeamFromColor(getComputedStyle(u).backgroundColor) === 'blue');
+  const redCmd = redUnits.find(u => u.textContent === '👑');
+  const blueCmd = blueUnits.find(u => u.textContent === '👑');
+
+  if (redCmd && redUnits.length === 1) {
+    document.getElementById('win-message').textContent = 'BLUE wins by Decimation!';
+    document.getElementById('win-screen').style.display = 'flex';
+  }
+  if (blueCmd && blueUnits.length === 1) {
+    document.getElementById('win-message').textContent = 'RED wins by Decimation!';
+    document.getElementById('win-screen').style.display = 'flex';
+  }
+}
         return;
       } else {
         document.querySelectorAll('.confirm').forEach(t => t.classList.remove('confirm'));
@@ -267,12 +286,23 @@ board.addEventListener('click', (e) => {
   }
 
   if (selectedUnit && isHighlighted) {
+    const fromIndex = Array.from(board.children).findIndex(tile => tile.contains(selectedUnit));
+    const unitId = `${currentTurn}-${fromIndex}`;
+    moveHistory[unitId] = moveHistory[unitId] || [];
+    moveHistory[unitId].push(index);
+
+    // Exhaustion rule: prevent 3rd consecutive move
+    if (moveHistory[unitId].length >= 3 && moveHistory[unitId].slice(-3).every(i => i === index)) {
+      alert('This unit is exhausted and must rest.');
+      return;
+    }
     tile.appendChild(selectedUnit);
     selectedUnit = null;
     document.querySelectorAll('.highlight').forEach(t => t.classList.remove('highlight'));
     document.querySelectorAll('.confirm').forEach(t => t.classList.remove('confirm'));
     tryCapture(index, currentTurn);
     checkCommanderLiberties();
+    checkDecimationVictory();
     if (selectedUnit?.textContent === '👑') {
       const team = getTeamFromColor(selectedUnit.style.backgroundColor);
       const opponentCastle = team === 'red' ? blueCastle : redCastle;
