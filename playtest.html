@@ -133,6 +133,7 @@ const updatePopulationCount = () => {
 };
 
 let selectedUnit = null;
+const moveHistory = new Map();
 let currentTurn = 'red';
 let hasRecruited = false;
 
@@ -261,6 +262,11 @@ board.addEventListener('click', (e) => {
 
   if (selectedUnit && isHighlighted) {
     tile.appendChild(selectedUnit);
+    if (selectedUnit.textContent === '🛡') {
+      const history = moveHistory.get(selectedUnit) || [];
+      history.push(index);
+      moveHistory.set(selectedUnit, history);
+    }
     selectedUnit = null;
     document.querySelectorAll('.highlight').forEach(t => t.classList.remove('highlight'));
     tryCapture(index, currentTurn);
@@ -275,6 +281,11 @@ board.addEventListener('click', (e) => {
   document.querySelectorAll('.highlight').forEach(t => t.classList.remove('highlight'));
   if (unit) {
     if (unit.classList.contains('fresh')) return;
+    const unitKey = unit;
+    if (unit.textContent === '🛡') {
+      const moves = moveHistory.get(unitKey) || [];
+      if (moves.length >= 2 && moves[moves.length - 1] === moves[moves.length - 2]) return;
+    }
     const unitColor = window.getComputedStyle(unit).backgroundColor;
     if (getTeamFromColor(unitColor) !== currentTurn) return;
     selectedUnit = unit;
