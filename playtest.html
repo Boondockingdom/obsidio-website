@@ -76,7 +76,7 @@
     <button id="save-setup">Save Setup</button>
     <button id="new-game">New Game</button>
   </div>
-  <div id="win-screen" style="display:none;">
+  <div id="win-screen">
     <div id="win-message"></div>
     <button onclick="location.reload()">Play Again</button>
   </div>
@@ -104,66 +104,32 @@ const defaultSetup = [
   { index: 283, symbol: '⚔', color: '#3b6baa' }
 ];
 
-for (let i = 0; i < 324; i++) {
-  const tile = document.createElement('div');
-  tile.classList.add('tile');
-  if (terrain[i]) tile.classList.add(terrain[i]);
-  if (redCastle.includes(i) || blueCastle.includes(i)) tile.classList.add('castle');
-  if (gateIndices.includes(i)) tile.classList.add('gate');
-  tile.dataset.index = i;
-  board.appendChild(tile);
-}
-
-const renderUnit = (index, symbol, color) => {
-  const tile = board.children[index];
-  const unit = document.createElement('div');
-  unit.classList.add('unit');
-  unit.textContent = symbol;
-  unit.style.backgroundColor = color;
-  tile.appendChild(unit);
-};
-
-const updatePopulationCount = () => {
-  const allUnits = document.querySelectorAll('.unit');
-  const red = [...allUnits].filter(u => u.textContent === '🛡' && u.style.backgroundColor === 'rgb(170, 59, 59)').length;
-  const blue = [...allUnits].filter(u => u.textContent === '🛡' && u.style.backgroundColor === 'rgb(59, 107, 170)').length;
-  document.getElementById('red-count').textContent = red;
-  document.getElementById('blue-count').textContent = blue;
-  return { red, blue };
-};
-
-let selectedUnit = null;
-let moveHistory = new Map();
-let currentTurn = 'red';
-let hasRecruited = false;
-
-const getTeamFromColor = (color) => color === 'rgb(170, 59, 59)' ? 'red' : 'blue';
-
-const updateTurnUI = () => {
-  board.style.border = `4px solid ${currentTurn === 'red' ? '#aa3b3b' : '#3b6baa'}`;
-};
-
-const getMoveCost = (symbol, terrainType) => {
-  if (terrainType === 'mountain') return Infinity;
-  if (symbol === '👑') return 1;
-  if (terrainType === 'forest' || terrainType === 'water') return 2;
-  return 1;
-};
-
-const getReachableTiles = (start, symbol, maxPace) => {
+function getReachableTiles(start, symbol, maxPace) {
   const reachable = [];
   const row = Math.floor(start / 18);
   const col = start % 18;
   const directions = [
-    { dr: -1, dc: 0 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: 0, dc: 1 }
+    { dr: -1, dc: 0 },
+    { dr: 1, dc: 0 },
+    { dr: 0, dc: -1 },
+    { dr: 0, dc: 1 }
   ];
   directions.forEach(({ dr, dc }) => {
-    let r = row + dr, c = col + dc, used = 0;
+    let r = row + dr;
+    let c = col + dc;
+    let used = 0;
     while (r >= 0 && r < 18 && c >= 0 && c < 18) {
       const idx = r * 18 + c;
       const terrainType = terrain[idx];
-      const cost = getMoveCost(symbol, terrainType);
+      let cost = 1;
+      if (terrainType === 'mountain') break;
+      if (symbol === '👑') {
+        cost = 1;
+      } else if (terrainType === 'forest' || terrainType === 'water') {
+        cost = 2;
+      }
       if (used + cost > maxPace || board.children[idx].querySelector('.unit')) break;
+      if (board.children[idx].classList.contains('castle') && symbol !== '👑') break;
       reachable.push(idx);
       used += cost;
       r += dr;
@@ -171,9 +137,48 @@ const getReachableTiles = (start, symbol, maxPace) => {
     }
   });
   return reachable;
-};
+}
 
-const tryCapture = (movedToIndex, movedByTeam) => {
+function renderBoard() {
+  board.innerHTML = '';
+  for (let i = 0; i < 324; i++) {
+    const tile = document.createElement('div');
+    tile.classList.add('tile');
+    if (terrain[i]) tile.classList.add(terrain[i]);
+    if (redCastle.includes(i) || blueCastle.includes(i)) tile.classList.add('castle');
+    if (gateIndices.includes(i)) tile.classList.add('gate');
+    tile.dataset.index = i;
+    board.appendChild(tile);
+  }
+  defaultSetup.forEach(({ index, symbol, color }) => {
+    const tile = board.children[index];
+    const unit = document.createElement('div');
+    unit.className = 'unit';
+    unit.textContent = symbol;
+    unit.style.backgroundColor = color;
+    tile.appendChild(unit);
+  });
+}
+
+renderBoard();
+
+let currentTurn = 'red';
+let selectedUnit = null;
+let hasRecruited = false;
+
+function updateTurnUI() {
+  board.style.borderColor = currentTurn === 'red' ? '#aa3b3b' : '#3b6baa';
+  const redCount = document.querySelectorAll('.unit[style*="rgb(170, 59, 59)"][textContent="🛡"]').length;
+  const blueCount = document.querySelectorAll('.unit[style*="rgb(59, 107, 170)"][textContent="🛡"]').length;
+  document.getElementById('red-count').textContent = redCount;
+  document.getElementById('blue-count').textContent = blueCount;
+}
+
+function getTeamFromColor(color) {
+  return color === 'rgb(170, 59, 59)' ? 'red' : 'blue';
+}
+
+function tryCapture(movedToIndex, movedByTeam) {
   const directions = [
     { dr: -1, dc: 0 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: 0, dc: 1 }
   ];
@@ -189,19 +194,19 @@ const tryCapture = (movedToIndex, movedByTeam) => {
       const flankIdx = flankRow * 18 + flankCol;
       const enemyUnit = board.children[enemyIdx].querySelector('.unit');
       const flankUnit = board.children[flankIdx].querySelector('.unit');
-      if (enemyUnit && getTeamFromColor(window.getComputedStyle(enemyUnit).backgroundColor) !== movedByTeam && flankUnit && getTeamFromColor(window.getComputedStyle(flankUnit).backgroundColor) === movedByTeam && enemyUnit.textContent !== '👑') {
+      if (enemyUnit && getTeamFromColor(getComputedStyle(enemyUnit).backgroundColor) !== movedByTeam && flankUnit && getTeamFromColor(getComputedStyle(flankUnit).backgroundColor) === movedByTeam && enemyUnit.textContent !== '👑') {
         board.children[enemyIdx].innerHTML = '';
       }
     }
   });
-};
+}
 
-const checkCommanderLiberties = () => {
+function checkCommanderLiberties() {
   const commanders = [];
   for (let i = 0; i < 324; i++) {
     const unit = board.children[i].querySelector('.unit');
     if (unit && unit.textContent === '👑') {
-      commanders.push({ index: i, team: getTeamFromColor(window.getComputedStyle(unit).backgroundColor) });
+      commanders.push({ index: i, team: getTeamFromColor(getComputedStyle(unit).backgroundColor) });
     }
   }
   commanders.forEach(({ index, team }) => {
@@ -221,39 +226,40 @@ const checkCommanderLiberties = () => {
       return blocker || terrainType === 'mountain' || terrainType === 'water';
     });
     if (blocked.length === 4) {
-      document.getElementById('win-message').textContent = `${team.toUpperCase()} Commander has been captured. ${team === 'red' ? 'BLUE' : 'RED'} WINS!`;
+      document.getElementById('win-message').textContent = `${team.toUpperCase()} Commander captured. ${team === 'red' ? 'BLUE' : 'RED'} WINS!`;
       document.getElementById('win-screen').style.display = 'flex';
     }
   });
-};
+}
 
 board.addEventListener('click', (e) => {
   const tile = e.target.closest('.tile');
   if (!tile) return;
   const index = +tile.dataset.index;
   const isHighlighted = tile.classList.contains('highlight');
-
   const unit = tile.querySelector('.unit');
-  const { red, blue } = updatePopulationCount();
+  const red = document.querySelectorAll('.unit[style*="rgb(170, 59, 59)"][textContent="🛡"]').length;
+  const blue = document.querySelectorAll('.unit[style*="rgb(59, 107, 170)"][textContent="🛡"]').length;
 
-  if (!hasRecruited && tile.classList.contains('gate')) {
-    const gateIndex = index;
-    const gateColor = gateIndex < 162 ? 'red' : 'blue';
-    if (!unit && gateColor === currentTurn) {
+  if (!hasRecruited && tile.classList.contains('gate') && !unit) {
+    const gateColor = index < 162 ? 'red' : 'blue';
+    if (gateColor === currentTurn) {
       if ((currentTurn === 'red' && red >= 10) || (currentTurn === 'blue' && blue >= 10)) {
-        alert('Population cap reached. You cannot recruit more infantry.');
-        document.querySelectorAll('.tile.confirm').forEach(t => t.classList.remove('confirm'));
+        alert('Population cap reached.');
         return;
       }
       if (tile.classList.contains('confirm')) {
-        renderUnit(gateIndex, '🛡', currentTurn === 'red' ? '#aa3b3b' : '#3b6baa');
-        tile.querySelector('.unit').classList.add('fresh');
+        const newUnit = document.createElement('div');
+        newUnit.className = 'unit fresh';
+        newUnit.textContent = '🛡';
+        newUnit.style.backgroundColor = currentTurn === 'red' ? '#aa3b3b' : '#3b6baa';
+        tile.appendChild(newUnit);
         tile.classList.remove('confirm');
         hasRecruited = true;
-        updatePopulationCount();
+        updateTurnUI();
         return;
       } else {
-        document.querySelectorAll('.tile.confirm').forEach(t => t.classList.remove('confirm'));
+        document.querySelectorAll('.confirm').forEach(t => t.classList.remove('confirm'));
         tile.classList.add('confirm');
         return;
       }
@@ -261,41 +267,30 @@ board.addEventListener('click', (e) => {
   }
 
   if (selectedUnit && isHighlighted) {
-    tile.innerHTML = '';
     tile.appendChild(selectedUnit);
-    if (selectedUnit.textContent === '🛡') {
-      const history = moveHistory.get(selectedUnit) || [];
-      history.push(index);
-      moveHistory.set(selectedUnit, history.slice(-3));
-    }
     selectedUnit = null;
     document.querySelectorAll('.highlight').forEach(t => t.classList.remove('highlight'));
+    document.querySelectorAll('.confirm').forEach(t => t.classList.remove('confirm'));
     tryCapture(index, currentTurn);
     checkCommanderLiberties();
+    if (selectedUnit?.textContent === '👑') {
+      const team = getTeamFromColor(selectedUnit.style.backgroundColor);
+      const opponentCastle = team === 'red' ? blueCastle : redCastle;
+      if (opponentCastle.includes(index)) {
+        document.getElementById('win-message').textContent = `${team.toUpperCase()} wins by Siege!`;
+        document.getElementById('win-screen').style.display = 'flex';
+      }
+    }
     document.querySelectorAll('.unit.fresh').forEach(u => u.classList.remove('fresh'));
     currentTurn = currentTurn === 'red' ? 'blue' : 'red';
     hasRecruited = false;
-    
-
-
-
-
-
-
-
-
-
+    updateTurnUI();
     return;
   }
 
   document.querySelectorAll('.highlight').forEach(t => t.classList.remove('highlight'));
-  if (unit) {
-    if (unit.classList.contains('fresh')) return;
-    if (unit.textContent === '🛡') {
-      const moves = moveHistory.get(unit) || [];
-      if (moves.length >= 2 && moves[moves.length - 1] === moves[moves.length - 2]) return;
-    }
-    const unitColor = window.getComputedStyle(unit).backgroundColor;
+  if (unit && !unit.classList.contains('fresh')) {
+    const unitColor = getComputedStyle(unit).backgroundColor;
     if (getTeamFromColor(unitColor) !== currentTurn) return;
     selectedUnit = unit;
     const symbol = unit.textContent;
@@ -305,9 +300,7 @@ board.addEventListener('click', (e) => {
   }
 });
 
-
-  defaultSetup.forEach(({ index, symbol, color }) => renderUnit(index, symbol, color));
-  updateTurnUI();
+updateTurnUI();
 </script>
 </body>
 </html>
