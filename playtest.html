@@ -261,6 +261,7 @@ board.addEventListener('click', (e) => {
   }
 
   if (selectedUnit && isHighlighted) {
+    tile.innerHTML = '';
     tile.appendChild(selectedUnit);
     if (selectedUnit.textContent === '🛡') {
       const history = moveHistory.get(selectedUnit) || [];
@@ -279,11 +280,11 @@ board.addEventListener('click', (e) => {
 
 
 
-updateTurnUI();
 
 
 
-defaultSetup.forEach(({ index, symbol, color }) => renderUnit(index, symbol, color));
+
+
     return;
   }
 
@@ -304,7 +305,8 @@ defaultSetup.forEach(({ index, symbol, color }) => renderUnit(index, symbol, col
   }
 });
 
-defaultSetup.forEach(({ index, symbol, color }) => renderUnit(index, symbol, color));
+
+  defaultSetup.forEach(({ index, symbol, color }) => renderUnit(index, symbol, color));
   updateTurnUI();
 </script>
 </body>
