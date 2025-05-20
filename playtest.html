@@ -4,71 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Playtest Obsidio</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap" rel="stylesheet">
   <style>
     body {
+      margin: 0;
       background: #1b1b1b url('assets/playtest-background.jpg') no-repeat center center fixed;
       background-size: cover;
-      margin: 0;
-      font-family: 'Cinzel', serif;
-      color: #f4f4f4;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 2rem;
+      height: 100vh;
     }
-    h1 {
-      color: #e0c97f;
-    }
-    iframe {
-      border: none;
-      aspect-ratio: 1 / 1;
-      width: 100%;
-      max-width: 1000px;
-      margin-top: 2rem;
-    }
-    a {
-      color: #e0c97f;
-      margin-top: 2rem;
-      text-decoration: underline;
-    }
-      #game-board {
-      height: auto;
-      box-sizing: border-box;
-      border-collapse: collapse;
-      gap: 0;
-      transform: scale(0.75);
-      transform-origin: top center;
-      
-      display: grid;
-      grid-template-columns: repeat(18, 1fr);
-      grid-template-rows: repeat(18, 1fr);
-      width: 100%;
-      max-width: 1000px;
-      aspect-ratio: 1 / 1;
-      border: 2px solid #e0c97f;
-      margin-top: 2rem;
-    }
-
-    .tile {
-      box-sizing: border-box;
-      aspect-ratio: 1 / 1;
-      border: 1px solid #444;
-      background-color: rgba(255, 255, 255, 0.05);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      position: relative;
-      cursor: pointer;
-    }
-
-    .unit {
-      background-color: #e0c97f;
-      color: #1b1b1b;
+      .unit {
       width: 80%;
       height: 80%;
       border-radius: 50%;
@@ -76,88 +19,110 @@
       align-items: center;
       justify-content: center;
       font-size: 1.2rem;
-    }
-    .tile::after {
-      content: attr(data-coord);
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      font-size: 0.5rem;
-      color: #999;
+      color: #fff;
     }
   </style>
 </head>
 <body>
-  
-  <p>Try out the game in your browser below. This prototype is a digital version of the board game for testing and feedback.</p>
+  <div style="text-align: center; margin-top: 1rem;">
+    <label for="team-select" style="color: #fff;">Team:</label>
+    <select id="team-select">
+      <option value="red">Red</option>
+      <option value="blue">Blue</option>
+    </select>
 
-  <!-- Embed placeholder game (to be replaced with functional version or link) -->
-  <div style="margin-bottom: 1rem;">
-    <label for="unit-select">Select Unit:</label>
+    <label for="unit-select" style="color: #fff; margin-left: 1rem;">Unit:</label>
     <select id="unit-select">
-      <option value="red-👑">Red Commander</option>
-      <option value="red-⚔">Red Officer</option>
-      <option value="red-🛡">Red Infantry</option>
-      <option value="blue-👑">Blue Commander</option>
-      <option value="blue-⚔">Blue Officer</option>
-      <option value="blue-🛡">Blue Infantry</option>
+      <option value="👑">Commander</option>
+      <option value="⚔">Officer</option>
+      <option value="🛡">Infantry</option>
     </select>
   </div>
   <div id="game-board"></div>
+  <div style="text-align: center; margin-top: 1rem;">
+    <button id="save-setup">Save Setup</button>
+    <button id="load-setup">Load Setup</button>
+  </div>
 
-  <h1 style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #e0c97f;">Playtest Obsidio</h1>
-  <a href="index.html">&larr; Back to Home</a>
-<script>
-  const board = document.getElementById('game-board');
+  <style>
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(18, 1fr);
+      grid-template-rows: repeat(18, 1fr);
+      width: 90vmin;
+      height: 90vmin;
+      margin: 0 auto;
+      margin-top: 5vh;
+      box-sizing: border-box;
+    }
 
-  for (let i = 0; i < 324; i++) {
-    const row = Math.floor(i / 18) + 1;
-    const col = (i % 18) + 1;
-    const tile = document.createElement('div');
-    tile.classList.add('tile');
-    tile.setAttribute('data-coord', `R${row}C${col}`);
-    tile.addEventListener('click', () => {
-      if (!tile.querySelector('.unit')) {
+    .tile {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background-color: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+
+  <script>
+    const board = document.getElementById('game-board');
+    const defaultSetup = JSON.parse(localStorage.getItem('obsidioSetup')) || [];
+    for (let i = 0; i < 324; i++) {
+      const tile = document.createElement('div');
+      tile.classList.add('tile');
+            tile.addEventListener('click', () => {
+        if (!tile.querySelector('.unit')) {
+          const unit = document.createElement('div');
+          unit.classList.add('unit');
+          const symbol = document.getElementById('unit-select').value;
+          const team = document.getElementById('team-select').value;
+          unit.textContent = symbol;
+          unit.style.backgroundColor = team === 'red' ? '#aa3b3b' : '#3b6baa';
+          tile.appendChild(unit);
+        } else {
+          tile.innerHTML = '';
+        }
+      });
+            board.appendChild(tile);
+    }
+      const saveButton = document.getElementById('save-setup');
+    const loadButton = document.getElementById('load-setup');
+
+    // Load default setup immediately
+    defaultSetup.forEach(({ index, symbol, color }) => {
+      const unit = document.createElement('div');
+      unit.classList.add('unit');
+      unit.textContent = symbol;
+      unit.style.backgroundColor = color;
+      unit.style.color = '#fff';
+      board.children[index].appendChild(unit);
+    });
+
+    saveButton.addEventListener('click', () => {
+      const setup = [];
+      document.querySelectorAll('.tile').forEach((tile, index) => {
+        const unit = tile.querySelector('.unit');
+        if (unit) {
+          setup.push({ index, symbol: unit.textContent, color: unit.style.backgroundColor });
+        }
+      });
+      localStorage.setItem('obsidioSetup', JSON.stringify(setup));
+      alert('Setup saved!');
+    });
+
+    loadButton.addEventListener('click', () => {
+      const setup = JSON.parse(localStorage.getItem('obsidioSetup')) || [];
+      document.querySelectorAll('.tile').forEach(tile => tile.innerHTML = '');
+      setup.forEach(({ index, symbol, color }) => {
         const unit = document.createElement('div');
         unit.classList.add('unit');
-        const selected = document.getElementById('unit-select').value;
-        const [team, symbol] = selected.split('-');
         unit.textContent = symbol;
-        unit.style.backgroundColor = team === 'red' ? '#aa3b3b' : '#3b6baa';
+        unit.style.backgroundColor = color;
         unit.style.color = '#fff';
-        tile.appendChild(unit);
-      } else {
-        tile.innerHTML = '';
-      }
+        board.children[index].appendChild(unit);
+      });
     });
-    board.appendChild(tile);
-  }
-  // Add default starting units
-  const startingPositions = [
-    // Red castle centered in top-left quadrant (center of 3x3 is at row 5, col 5)
-    { index: 76, team: 'red', symbol: '👑' }, // Commander at (5,5)
-    { index: 22, team: 'red', symbol: '⚔' }, // Officer north at (2,5)
-    { index: 39, team: 'red', symbol: '⚔' }, // Officer west at (5,2)
-    { index: 41, team: 'red', symbol: '⚔' }, // Officer east at (5,8)
-    { index: 130, team: 'red', symbol: '⚔' }, // Officer south at (8,5)
-
-    // Blue castle centered in bottom-right quadrant (center of 3x3 is at row 14, col 14)
-    { index: 247, team: 'blue', symbol: '👑' }, // Commander at (14,14)
-    { index: 193, team: 'blue', symbol: '⚔' }, // Officer north at (11,14)
-    { index: 210, team: 'blue', symbol: '⚔' }, // Officer west at (14,11)
-    { index: 212, team: 'blue', symbol: '⚔' }, // Officer east at (14,17)
-    { index: 301, team: 'blue', symbol: '⚔' }, // Officer south at (17,14)
-  ];
-
-  const tiles = board.querySelectorAll('.tile');
-  startingPositions.forEach(({ index, team, symbol }) => {
-    const unit = document.createElement('div');
-    unit.classList.add('unit');
-    unit.textContent = symbol;
-    unit.style.backgroundColor = team === 'red' ? '#aa3b3b' : '#3b6baa';
-    unit.style.color = '#fff';
-    tiles[index].appendChild(unit);
-  });
-</script>
+  </script>
 </body>
 </html>
