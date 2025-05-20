@@ -163,6 +163,18 @@ function renderBoard() {
 
 renderBoard();
 
+function resetGame() {
+  selectedUnit = null;
+  hasRecruited = false;
+  currentTurn = 'red';
+  moveHistory = {};
+  document.getElementById('win-screen').style.display = 'none';
+  renderBoard();
+  updateTurnUI();
+
+document.getElementById('new-game').addEventListener('click', resetGame);
+}
+
 let currentTurn = 'red';
 let lastMoved = { red: null, blue: null };
 let moveHistory = {};
