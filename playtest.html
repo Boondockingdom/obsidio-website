@@ -132,7 +132,160 @@ const updatePopulationCount = () => {
   return { red, blue };
 };
 
-// ... Rest of game logic here (movement, flanking, recruitment, turns, etc.)
+let selectedUnit = null;
+let currentTurn = 'red';
+let hasRecruited = false;
+
+const getTeamFromColor = (color) => color === 'rgb(170, 59, 59)' ? 'red' : 'blue';
+
+const updateTurnUI = () => {
+  board.style.border = `4px solid ${currentTurn === 'red' ? '#aa3b3b' : '#3b6baa'}`;
+};
+
+const getMoveCost = (symbol, terrainType) => {
+  if (terrainType === 'mountain') return Infinity;
+  if (symbol === '👑') return 1;
+  if (terrainType === 'forest' || terrainType === 'water') return 2;
+  return 1;
+};
+
+const getReachableTiles = (start, symbol, maxPace) => {
+  const reachable = [];
+  const row = Math.floor(start / 18);
+  const col = start % 18;
+  const directions = [
+    { dr: -1, dc: 0 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: 0, dc: 1 }
+  ];
+  directions.forEach(({ dr, dc }) => {
+    let r = row + dr, c = col + dc, used = 0;
+    while (r >= 0 && r < 18 && c >= 0 && c < 18) {
+      const idx = r * 18 + c;
+      const terrainType = terrain[idx];
+      const cost = getMoveCost(symbol, terrainType);
+      if (used + cost > maxPace || board.children[idx].querySelector('.unit')) break;
+      reachable.push(idx);
+      used += cost;
+      r += dr;
+      c += dc;
+    }
+  });
+  return reachable;
+};
+
+const tryCapture = (movedToIndex, movedByTeam) => {
+  const directions = [
+    { dr: -1, dc: 0 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: 0, dc: 1 }
+  ];
+  const row = Math.floor(movedToIndex / 18);
+  const col = movedToIndex % 18;
+  directions.forEach(({ dr, dc }) => {
+    const enemyRow = row + dr;
+    const enemyCol = col + dc;
+    const flankRow = row + dr * 2;
+    const flankCol = col + dc * 2;
+    if (enemyRow >= 0 && enemyRow < 18 && enemyCol >= 0 && enemyCol < 18 && flankRow >= 0 && flankRow < 18 && flankCol >= 0 && flankCol < 18) {
+      const enemyIdx = enemyRow * 18 + enemyCol;
+      const flankIdx = flankRow * 18 + flankCol;
+      const enemyUnit = board.children[enemyIdx].querySelector('.unit');
+      const flankUnit = board.children[flankIdx].querySelector('.unit');
+      if (enemyUnit && getTeamFromColor(window.getComputedStyle(enemyUnit).backgroundColor) !== movedByTeam && flankUnit && getTeamFromColor(window.getComputedStyle(flankUnit).backgroundColor) === movedByTeam && enemyUnit.textContent !== '👑') {
+        board.children[enemyIdx].innerHTML = '';
+      }
+    }
+  });
+};
+
+const checkCommanderLiberties = () => {
+  const commanders = [];
+  for (let i = 0; i < 324; i++) {
+    const unit = board.children[i].querySelector('.unit');
+    if (unit && unit.textContent === '👑') {
+      commanders.push({ index: i, team: getTeamFromColor(window.getComputedStyle(unit).backgroundColor) });
+    }
+  }
+  commanders.forEach(({ index, team }) => {
+    const row = Math.floor(index / 18);
+    const col = index % 18;
+    const adjacent = [
+      { r: row - 1, c: col },
+      { r: row + 1, c: col },
+      { r: row, c: col - 1 },
+      { r: row, c: col + 1 }
+    ];
+    const blocked = adjacent.filter(({ r, c }) => {
+      if (r < 0 || r >= 18 || c < 0 || c >= 18) return true;
+      const idx = r * 18 + c;
+      const terrainType = terrain[idx];
+      const blocker = board.children[idx].querySelector('.unit');
+      return blocker || terrainType === 'mountain' || terrainType === 'water';
+    });
+    if (blocked.length === 4) {
+      document.getElementById('win-message').textContent = `${team.toUpperCase()} Commander has been captured. ${team === 'red' ? 'BLUE' : 'RED'} WINS!`;
+      document.getElementById('win-screen').style.display = 'flex';
+    }
+  });
+};
+
+board.addEventListener('click', (e) => {
+  const tile = e.target.closest('.tile');
+  if (!tile) return;
+  const index = +tile.dataset.index;
+  const isHighlighted = tile.classList.contains('highlight');
+
+  const unit = tile.querySelector('.unit');
+  const { red, blue } = updatePopulationCount();
+
+  if (!hasRecruited && tile.classList.contains('gate')) {
+    const gateIndex = index;
+    const gateColor = gateIndex < 162 ? 'red' : 'blue';
+    if (!unit && gateColor === currentTurn) {
+      if ((currentTurn === 'red' && red >= 10) || (currentTurn === 'blue' && blue >= 10)) {
+        alert('Population cap reached. You cannot recruit more infantry.');
+        document.querySelectorAll('.tile.confirm').forEach(t => t.classList.remove('confirm'));
+        return;
+      }
+      if (tile.classList.contains('confirm')) {
+        renderUnit(gateIndex, '🛡', currentTurn === 'red' ? '#aa3b3b' : '#3b6baa');
+        tile.querySelector('.unit').classList.add('fresh');
+        tile.classList.remove('confirm');
+        hasRecruited = true;
+        updatePopulationCount();
+        return;
+      } else {
+        document.querySelectorAll('.tile.confirm').forEach(t => t.classList.remove('confirm'));
+        tile.classList.add('confirm');
+        return;
+      }
+    }
+  }
+
+  if (selectedUnit && isHighlighted) {
+    tile.appendChild(selectedUnit);
+    selectedUnit = null;
+    document.querySelectorAll('.highlight').forEach(t => t.classList.remove('highlight'));
+    tryCapture(index, currentTurn);
+    checkCommanderLiberties();
+    document.querySelectorAll('.unit.fresh').forEach(u => u.classList.remove('fresh'));
+    currentTurn = currentTurn === 'red' ? 'blue' : 'red';
+    hasRecruited = false;
+    updateTurnUI();
+    return;
+  }
+
+  document.querySelectorAll('.highlight').forEach(t => t.classList.remove('highlight'));
+  if (unit) {
+    if (unit.classList.contains('fresh')) return;
+    const unitColor = window.getComputedStyle(unit).backgroundColor;
+    if (getTeamFromColor(unitColor) !== currentTurn) return;
+    selectedUnit = unit;
+    const symbol = unit.textContent;
+    const maxPace = symbol === '⚔' ? 20 : 10;
+    const reachable = getReachableTiles(index, symbol, maxPace);
+    reachable.forEach(i => board.children[i].classList.add('highlight'));
+  }
+});
+
+updateTurnUI();
 </script>
 </body>
 </html>
