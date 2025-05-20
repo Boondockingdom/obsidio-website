@@ -67,7 +67,7 @@
     }
   </style>
 </head>
-<body>
+<body style="background: url('background.jpg') no-repeat center center fixed; background-size: cover;">
   <div id="population-info" style="text-align:center; color:white; margin: 1rem 0; font-size: 1.2rem;">
     Red Infantry: <span id="red-count">0</span> / 10 | Blue Infantry: <span id="blue-count">0</span> / 10
   </div>
@@ -274,7 +274,14 @@ board.addEventListener('click', (e) => {
     document.querySelectorAll('.unit.fresh').forEach(u => u.classList.remove('fresh'));
     currentTurn = currentTurn === 'red' ? 'blue' : 'red';
     hasRecruited = false;
-    updateTurnUI();
+    
+
+
+
+
+updateTurnUI();
+
+
 
 defaultSetup.forEach(({ index, symbol, color }) => renderUnit(index, symbol, color));
     return;
@@ -297,7 +304,8 @@ defaultSetup.forEach(({ index, symbol, color }) => renderUnit(index, symbol, col
   }
 });
 
-updateTurnUI();
+defaultSetup.forEach(({ index, symbol, color }) => renderUnit(index, symbol, color));
+  updateTurnUI();
 </script>
 </body>
 </html>
