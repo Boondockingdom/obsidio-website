@@ -36,12 +36,13 @@
       text-decoration: underline;
     }
       #game-board {
+      height: auto;
       box-sizing: border-box;
       border-collapse: collapse;
       gap: 0;
       transform: scale(0.75);
       transform-origin: top center;
-      height: 100vw;
+      
       display: grid;
       grid-template-columns: repeat(18, 1fr);
       grid-template-rows: repeat(18, 1fr);
@@ -85,9 +86,12 @@
   <div style="margin-bottom: 1rem;">
     <label for="unit-select">Select Unit:</label>
     <select id="unit-select">
-      <option value="⚔">Commander</option>
-      <option value="🛡">Officer</option>
-      <option value="🧍">Infantry</option>
+      <option value="red-👑">Red Commander</option>
+      <option value="red-⚔">Red Officer</option>
+      <option value="red-🛡">Red Infantry</option>
+      <option value="blue-👑">Blue Commander</option>
+      <option value="blue-⚔">Blue Officer</option>
+      <option value="blue-🛡">Blue Infantry</option>
     </select>
   </div>
   <div id="game-board"></div>
@@ -105,7 +109,10 @@
         const unit = document.createElement('div');
         unit.classList.add('unit');
         const selected = document.getElementById('unit-select').value;
-        unit.textContent = selected;
+        const [team, symbol] = selected.split('-');
+        unit.textContent = symbol;
+        unit.style.backgroundColor = team === 'red' ? '#aa3b3b' : '#3b6baa';
+        unit.style.color = '#fff';
         tile.appendChild(unit);
       } else {
         tile.innerHTML = '';
