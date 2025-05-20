@@ -11,7 +11,7 @@
       background-size: cover;
       height: 100vh;
     }
-      .unit {
+    .unit {
       width: 80%;
       height: 80%;
       border-radius: 50%;
@@ -20,6 +20,29 @@
       justify-content: center;
       font-size: 1.2rem;
       color: #fff;
+    }
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(18, 1fr);
+      grid-template-rows: repeat(18, 1fr);
+      width: 90vmin;
+      height: 90vmin;
+      margin: 0 auto;
+      margin-top: 5vh;
+      box-sizing: border-box;
+    }
+    .tile {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .tile.forest { background-color: #1e4024; }
+    .tile.mountain { background-color: #4b4b4b; }
+    .tile.water { background-color: #1a3b5a; }
+    .highlight {
+      outline: 2px solid yellow;
     }
   </style>
 </head>
@@ -38,66 +61,152 @@
       <option value="🛡">Infantry</option>
     </select>
   </div>
+
   <div id="game-board"></div>
+
   <div style="text-align: center; margin-top: 1rem;">
     <button id="save-setup">Save Setup</button>
-    <button id="load-setup">Load Setup</button>
+    <button id="new-game">New Game</button>
   </div>
-
-  <style>
-    #game-board {
-      display: grid;
-      grid-template-columns: repeat(18, 1fr);
-      grid-template-rows: repeat(18, 1fr);
-      width: 90vmin;
-      height: 90vmin;
-      margin: 0 auto;
-      margin-top: 5vh;
-      box-sizing: border-box;
-    }
-
-    .tile {
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background-color: rgba(255, 255, 255, 0.05);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  </style>
 
   <script>
     const board = document.getElementById('game-board');
-    const defaultSetup = JSON.parse(localStorage.getItem('obsidioSetup')) || [];
+    const defaultSetup = [
+      { index: 76, symbol: '👑', color: '#aa3b3b' },
+      { index: 40, symbol: '⚔', color: '#aa3b3b' },
+      { index: 78, symbol: '⚔', color: '#aa3b3b' },
+      { index: 74, symbol: '⚔', color: '#aa3b3b' },
+      { index: 112, symbol: '⚔', color: '#aa3b3b' },
+      { index: 247, symbol: '👑', color: '#3b6baa' },
+      { index: 211, symbol: '⚔', color: '#3b6baa' },
+      { index: 245, symbol: '⚔', color: '#3b6baa' },
+      { index: 249, symbol: '⚔', color: '#3b6baa' },
+      { index: 283, symbol: '⚔', color: '#3b6baa' }
+    ];
+
+    const terrain = Array(324).fill('');
+    [4, 5, 6, 22, 23, 24].forEach(i => terrain[i] = 'mountain');
+    [18, 36, 54, 72].forEach(i => terrain[i] = 'water');
+    [100, 101, 119].forEach(i => terrain[i] = 'forest');
+
     for (let i = 0; i < 324; i++) {
       const tile = document.createElement('div');
       tile.classList.add('tile');
-            tile.addEventListener('click', () => {
-        if (!tile.querySelector('.unit')) {
-          const unit = document.createElement('div');
-          unit.classList.add('unit');
-          const symbol = document.getElementById('unit-select').value;
-          const team = document.getElementById('team-select').value;
-          unit.textContent = symbol;
-          unit.style.backgroundColor = team === 'red' ? '#aa3b3b' : '#3b6baa';
-          tile.appendChild(unit);
-        } else {
-          tile.innerHTML = '';
-        }
-      });
-            board.appendChild(tile);
+      if (terrain[i]) tile.classList.add(terrain[i]);
+      tile.dataset.index = i;
+      board.appendChild(tile);
     }
-      const saveButton = document.getElementById('save-setup');
-    const loadButton = document.getElementById('load-setup');
 
-    // Load default setup immediately
-    defaultSetup.forEach(({ index, symbol, color }) => {
+    const renderUnit = (index, symbol, color) => {
+      const tile = board.children[index];
       const unit = document.createElement('div');
       unit.classList.add('unit');
       unit.textContent = symbol;
       unit.style.backgroundColor = color;
-      unit.style.color = '#fff';
-      board.children[index].appendChild(unit);
+      tile.appendChild(unit);
+    };
+
+    const clearHighlights = () => {
+      document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+    };
+
+    const getMoveCost = (symbol, terrainType) => {
+      if (terrainType === 'mountain') return Infinity;
+      if (symbol === '👑') return 1;
+      if (terrainType === 'forest' || terrainType === 'water') return 2;
+      return 1;
+    };
+
+    const getReachableTiles = (start, symbol, maxPace) => {
+      const reachable = [];
+      const row = Math.floor(start / 18);
+      const col = start % 18;
+
+      const directions = [
+        { dr: -1, dc: 0 },
+        { dr: 1, dc: 0 },
+        { dr: 0, dc: -1 },
+        { dr: 0, dc: 1 }
+      ];
+
+      directions.forEach(({ dr, dc }) => {
+        let r = row + dr, c = col + dc, used = 0;
+        while (r >= 0 && r < 18 && c >= 0 && c < 18) {
+          const idx = r * 18 + c;
+          const terrainType = terrain[idx];
+          const cost = getMoveCost(symbol, terrainType);
+          if (used + cost > maxPace || board.children[idx].querySelector('.unit')) break;
+          reachable.push(idx);
+          used += cost;
+          r += dr;
+          c += dc;
+        }
+      });
+
+      return reachable;
+    };
+
+    const updateBoardBorder = () => {
+      board.style.border = `4px solid ${currentTurn === 'red' ? '#aa3b3b' : '#3b6baa'}`;
+    };
+
+    let selectedUnit = null;
+    let currentTurn = 'red';
+    const turnLabel = document.createElement('div');
+    turnLabel.style.color = '#fff';
+    turnLabel.style.textAlign = 'center';
+    turnLabel.style.marginTop = '1rem';
+    turnLabel.style.padding = '0.5rem';
+    turnLabel.style.display = 'inline-block';
+    turnLabel.style.borderRadius = '6px';
+    document.body.insertBefore(turnLabel, board);
+
+    const updateTurnUI = () => {
+      turnLabel.textContent = `Turn: ${currentTurn.toUpperCase()}`;
+      turnLabel.style.border = `2px solid ${currentTurn === 'red' ? '#aa3b3b' : '#3b6baa'}`;
+      updateBoardBorder();
+    };
+
+    updateTurnUI();
+
+    board.addEventListener('click', (e) => {
+      const tile = e.target.closest('.tile');
+      if (!tile) return;
+      const index = +tile.dataset.index;
+      const isHighlighted = tile.classList.contains('highlight');
+      if (selectedUnit && isHighlighted) {
+        tile.appendChild(selectedUnit);
+        selectedUnit = null;
+        clearHighlights();
+        currentTurn = currentTurn === 'red' ? 'blue' : 'red';
+        updateTurnUI();
+        return;
+      }
+      const selected = tile.querySelector('.unit');
+
+      clearHighlights();
+
+      if (selected) {
+        const unitColor = window.getComputedStyle(selected).backgroundColor;
+        const team = unitColor === 'rgb(170, 59, 59)' ? 'red' : 'blue';
+        if (team !== currentTurn) return;
+        selectedUnit = selected;
+        const symbol = selected.textContent;
+        const maxPace = symbol === '⚔' ? 20 : 10;
+        const reachable = getReachableTiles(index, symbol, maxPace);
+        reachable.forEach(i => board.children[i].classList.add('highlight'));
+      }
     });
+
+    const saveButton = document.getElementById('save-setup');
+    const newGameButton = document.getElementById('new-game');
+
+    const resetBoard = () => {
+      document.querySelectorAll('.tile').forEach(tile => tile.innerHTML = '');
+      defaultSetup.forEach(({ index, symbol, color }) => renderUnit(index, symbol, color));
+    };
+
+    resetBoard();
 
     saveButton.addEventListener('click', () => {
       const setup = [];
@@ -111,18 +220,7 @@
       alert('Setup saved!');
     });
 
-    loadButton.addEventListener('click', () => {
-      const setup = JSON.parse(localStorage.getItem('obsidioSetup')) || [];
-      document.querySelectorAll('.tile').forEach(tile => tile.innerHTML = '');
-      setup.forEach(({ index, symbol, color }) => {
-        const unit = document.createElement('div');
-        unit.classList.add('unit');
-        unit.textContent = symbol;
-        unit.style.backgroundColor = color;
-        unit.style.color = '#fff';
-        board.children[index].appendChild(unit);
-      });
-    });
+    newGameButton.addEventListener('click', resetBoard);
   </script>
 </body>
 </html>
