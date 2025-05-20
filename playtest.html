@@ -133,7 +133,7 @@ const updatePopulationCount = () => {
 };
 
 let selectedUnit = null;
-const moveHistory = new Map();
+let moveHistory = new Map();
 let currentTurn = 'red';
 let hasRecruited = false;
 
@@ -265,7 +265,7 @@ board.addEventListener('click', (e) => {
     if (selectedUnit.textContent === '🛡') {
       const history = moveHistory.get(selectedUnit) || [];
       history.push(index);
-      moveHistory.set(selectedUnit, history);
+      moveHistory.set(selectedUnit, history.slice(-3));
     }
     selectedUnit = null;
     document.querySelectorAll('.highlight').forEach(t => t.classList.remove('highlight'));
@@ -275,15 +275,16 @@ board.addEventListener('click', (e) => {
     currentTurn = currentTurn === 'red' ? 'blue' : 'red';
     hasRecruited = false;
     updateTurnUI();
+
+defaultSetup.forEach(({ index, symbol, color }) => renderUnit(index, symbol, color));
     return;
   }
 
   document.querySelectorAll('.highlight').forEach(t => t.classList.remove('highlight'));
   if (unit) {
     if (unit.classList.contains('fresh')) return;
-    const unitKey = unit;
     if (unit.textContent === '🛡') {
-      const moves = moveHistory.get(unitKey) || [];
+      const moves = moveHistory.get(unit) || [];
       if (moves.length >= 2 && moves[moves.length - 1] === moves[moves.length - 2]) return;
     }
     const unitColor = window.getComputedStyle(unit).backgroundColor;
