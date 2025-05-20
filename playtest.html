@@ -82,6 +82,14 @@
   <p>Try out the game in your browser below. This prototype is a digital version of the board game for testing and feedback.</p>
 
   <!-- Embed placeholder game (to be replaced with functional version or link) -->
+  <div style="margin-bottom: 1rem;">
+    <label for="unit-select">Select Unit:</label>
+    <select id="unit-select">
+      <option value="⚔">Commander</option>
+      <option value="🛡">Officer</option>
+      <option value="🧍">Infantry</option>
+    </select>
+  </div>
   <div id="game-board"></div>
 
   <h1 style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #e0c97f;">Playtest Obsidio</h1>
@@ -96,7 +104,8 @@
       if (!tile.querySelector('.unit')) {
         const unit = document.createElement('div');
         unit.classList.add('unit');
-        unit.textContent = '⚔';
+        const selected = document.getElementById('unit-select').value;
+        unit.textContent = selected;
         tile.appendChild(unit);
       } else {
         tile.innerHTML = '';
