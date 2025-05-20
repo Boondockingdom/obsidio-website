@@ -20,13 +20,18 @@
       justify-content: center;
       font-size: 1.2rem;
       color: #fff;
+      transition: box-shadow 0.2s ease;
+    }
+    .unit.fresh {
+      box-shadow: 0 0 8px 3px gold;
+      opacity: 0.8;
     }
     #game-board {
       display: grid;
       grid-template-columns: repeat(18, 1fr);
       grid-template-rows: repeat(18, 1fr);
-      width: 90vmin;
-      height: 90vmin;
+      width: 76.5vmin;
+      height: 76.5vmin;
       margin: 0 auto;
       margin-top: 5vh;
       box-sizing: border-box;
@@ -43,7 +48,7 @@
     .tile.mountain { background-color: black; }
     .tile.water { background-color: #1a3b5a; }
     .tile.castle { background-color: gray; }
-    .tile.gate { background-color: brown; }
+    .tile.gate { background-color: #8B4513; }
     .highlight {
       outline: 2px solid yellow;
     }
@@ -65,6 +70,9 @@
     </select>
   </div>
 
+  <div id="population-info" style="text-align:center; color:white; margin: 1rem 0; font-size: 1.2rem;">
+    Red Infantry: <span id="red-count">0</span> / 10 | Blue Infantry: <span id="blue-count">0</span> / 10
+  </div>
   <div id="game-board"></div>
 
   <div style="text-align: center; margin-top: 1rem;">
@@ -254,6 +262,7 @@
     updateTurnUI();
     resetBoard();
 
+    let hasRecruited = false;
     board.addEventListener('click', (e) => {
       const tile = e.target.closest('.tile');
       if (!tile) return;
@@ -265,13 +274,49 @@
         clearHighlights();
         tryCapture(index, currentTurn);
         checkCommanderLiberties();
+        document.querySelectorAll('.unit.fresh').forEach(u => u.classList.remove('fresh'));
         currentTurn = currentTurn === 'red' ? 'blue' : 'red';
+        hasRecruited = false;
         updateTurnUI();
         return;
       }
       const selected = tile.querySelector('.unit');
       clearHighlights();
+      if (!hasRecruited && tile.classList.contains('gate')) {
+        const unit = tile.querySelector('.unit');
+        const gateIndex = +tile.dataset.index;
+        const gateColor = gateIndex < 162 ? 'red' : 'blue';
+        if (!unit && gateColor === currentTurn) {
+          if (tile.classList.contains('confirm')) {
+            const redCount = document.querySelectorAll('.unit').filter(u => u.textContent === '🛡' && getTeamFromColor(window.getComputedStyle(u).backgroundColor) === 'red').length;
+            const blueCount = document.querySelectorAll('.unit').filter(u => u.textContent === '🛡' && getTeamFromColor(window.getComputedStyle(u).backgroundColor) === 'blue').length;
+            if ((currentTurn === 'red' && redCount >= 10) || (currentTurn === 'blue' && blueCount >= 10)) {
+              alert('Population cap reached. You cannot recruit more infantry.');
+              document.querySelectorAll('.tile.confirm').forEach(t => t.classList.remove('confirm'));
+              return;
+            }
+            renderUnit(gateIndex, '🛡', currentTurn === 'red' ? '#aa3b3b' : '#3b6baa');
+            document.getElementById('red-count').textContent = redCount + (currentTurn === 'red' ? 1 : 0);
+            document.getElementById('blue-count').textContent = blueCount + (currentTurn === 'blue' ? 1 : 0);
+            const audio = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_50aa79e028.mp3?filename=click-124467.mp3');
+            audio.volume = 0.4;
+            audio.play();
+            board.children[gateIndex].querySelector('.unit').classList.add('fresh');
+            tile.classList.remove('confirm');
+            hasRecruited = true;
+            return;
+          } else {
+            document.querySelectorAll('.tile.confirm').forEach(t => t.classList.remove('confirm'));
+            tile.classList.add('confirm');
+            return;
+          }
+        }
+      }
+        }
+      }
+
       if (selected) {
+        if (selected.classList.contains('fresh')) return;
         const unitColor = window.getComputedStyle(selected).backgroundColor;
         const team = getTeamFromColor(unitColor);
         if (team !== currentTurn) return;
