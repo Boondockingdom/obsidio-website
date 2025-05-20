@@ -36,6 +36,9 @@
       text-decoration: underline;
     }
       #game-board {
+      box-sizing: border-box;
+      border-collapse: collapse;
+      gap: 0;
       transform: scale(0.75);
       transform-origin: top center;
       height: 100vw;
@@ -50,6 +53,7 @@
     }
 
     .tile {
+      box-sizing: border-box;
       aspect-ratio: 1 / 1;
       border: 1px solid #444;
       background-color: rgba(255, 255, 255, 0.05);
