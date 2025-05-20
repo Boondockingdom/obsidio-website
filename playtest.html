@@ -25,7 +25,7 @@
     }
     iframe {
       border: none;
-      aspect-ratio: 2 / 1;
+      aspect-ratio: 1 / 1;
       width: 100%;
       max-width: 1000px;
       margin-top: 2rem;
@@ -35,16 +35,68 @@
       margin-top: 2rem;
       text-decoration: underline;
     }
-  </style>
+      #game-board {
+      display: grid;
+      grid-template-columns: repeat(18, 1fr);
+      grid-template-rows: repeat(18, 1fr);
+      width: 100%;
+      max-width: 1000px;
+      aspect-ratio: 2 / 1;
+      border: 2px solid #e0c97f;
+      margin-top: 2rem;
+    }
+
+    .tile {
+      aspect-ratio: 1 / 1;
+      border: 1px solid #444;
+      background-color: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .unit {
+      background-color: #e0c97f;
+      color: #1b1b1b;
+      width: 80%;
+      height: 80%;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+</style>
 </head>
 <body>
   
   <p>Try out the game in your browser below. This prototype is a digital version of the board game for testing and feedback.</p>
 
   <!-- Embed placeholder game (to be replaced with functional version or link) -->
-  <iframe src="https://screentop.gg/" title="Obsidio Browser Playtest"></iframe>
+  <div id="game-board"></div>
 
   <h1 style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #e0c97f;">Playtest Obsidio</h1>
   <a href="index.html">&larr; Back to Home</a>
+<script>
+  const board = document.getElementById('game-board');
+
+  for (let i = 0; i < 324; i++) {
+    const tile = document.createElement('div');
+    tile.classList.add('tile');
+    tile.addEventListener('click', () => {
+      if (!tile.querySelector('.unit')) {
+        const unit = document.createElement('div');
+        unit.classList.add('unit');
+        unit.textContent = '⚔';
+        tile.appendChild(unit);
+      } else {
+        tile.innerHTML = '';
+      }
+    });
+    board.appendChild(tile);
+  }
+</script>
 </body>
 </html>
