@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=0.9">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Obsidio Live Stream</title>
   <style>
     body {
@@ -27,13 +27,14 @@
       border-radius: 8px;
     }
     .video-container {
-      width: 960px;
-      height: 540px;
-      max-width: 90vw;
-      max-height: 50.625vw;
+      width: 864px; /* 10% smaller than 960px */
+      height: 486px; /* 10% smaller than 540px */
+      max-width: 81vw;
+      max-height: 45.5625vw;
       background: black;
       box-shadow: 0 0 10px #000;
       position: relative;
+      margin-top: -2rem; /* move up slightly */
     }
     iframe {
       width: 100%;
